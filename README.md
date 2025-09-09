@@ -17,13 +17,7 @@ Retrieve camera's name, VID, PID, and the corresponding OpenCV index.
 ### Install from PyPI
 
 ```commandline
-pip install cv2_enumerate_cameras
-```
-
-### Install from Source
-
-```commandline
-pip install git+https://github.com/chinaheyu/cv2_enumerate_cameras.git
+pip install cv2-enumerate-cameras
 ```
 
 ## Example
@@ -48,17 +42,17 @@ for backend in supported_backends:
     print(getBackendName(backend))
 ```
 
-Currently supported backends on windows:
+Supported backends on windows:
 
 - Microsoft Media Foundation (CAP_MSMF)
 - DirectShow (CAP_DSHOW)
 
-Currently supported backends on linux:
+Supported backends on linux:
 
 - GStreamer (CAP_GSTREAMER)
 -  V4L/V4L2 (CAP_V4L2)
 
-Currently supported backends on macOS:
+Supported backends on macOS:
 
 - AVFoundation (CAP_AVFOUNDATION)
 
@@ -155,11 +149,3 @@ while True:
     if cv2.waitKey(1) == ord('q'):
         break
 ```
-
-## TODO
-
-Pull requests are very welcome.
-
-- [x] Windows Support
-- [x] Linux Support
-- [x] MacOS Support (Experimental)
