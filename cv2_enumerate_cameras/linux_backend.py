@@ -1,5 +1,6 @@
 from cv2_enumerate_cameras.camera_info import CameraInfo
 import os
+import subprocess
 
 
 try:
@@ -20,7 +21,30 @@ def read_line(*args):
         return line
     except IOError:
         return None
+    
+def device_can_capture_video(device_name: str) -> bool:
+    try:
+        device_info = subprocess.check_output(['v4l2-ctl', f'--device=/dev/{device_name}', '--info'])
+    except subprocess.CalledProcessError:
+        return True  # If we can't check device info, assume it supports capture
 
+    lines = device_info.decode('utf-8').split('\n')
+    capabilities_index = next((index for index, line in enumerate(lines) if line.startswith('\tCapabilities')), None)
+    device_caps_index = next((index for index, line in enumerate(lines) if line.startswith('\tDevice Caps')), None)
+    if device_caps_index is not None:
+        search_index = device_caps_index
+    elif capabilities_index is not None:
+        search_index = capabilities_index # If device has no specific Device Caps, we can trust it's main capabilities
+    else:
+        return True  # Device info returns no capabilities listed, assume it supports capture
+
+    for line in lines[search_index:]:
+        if 'Video Capture' in line:
+            return True
+        elif not line.startswith('\t\t'):
+            return False  # Next header has been reached, no video capture support
+
+    return False
 
 try:
     from linuxpy.video.device import iter_video_capture_devices
@@ -42,6 +66,10 @@ def cameras_generator(apiPreference):
         if not device_name[5:].isdigit():
             continue
         index = int(device_name[5:])
+
+        # check if device supports video capture
+        if not device_can_capture_video(device_name):
+            continue
 
         # read camera name
         video_device_path = f'/sys/class/video4linux/{device_name}'
