@@ -121,7 +121,7 @@ def enumerate_cameras(apiPreference: int = CAP_ANY) -> list[CameraInfo]:
     ...
 ```
 
-- `CameraInfo.index`: Camera index for creating `cv2.VideoCapture`ach containing all the information about a camera;
+- `CameraInfo.index`: Camera index for creating `cv2.VideoCapture`;
 - `CameraInfo.name`: Camera name;
 - `CameraInfo.path`:  Camera device path;
 - `CameraInfo.vid`:  Vendor identifier;

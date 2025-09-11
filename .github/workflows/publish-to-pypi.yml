@@ -3,8 +3,8 @@ name: Python package
 on: push
 
 jobs:
-  build_linux_wheels:
-    name: Build linux wheels
+  build_wheels:
+    name: Build wheels
     runs-on: ubuntu-latest
 
     steps:
@@ -14,10 +14,10 @@ jobs:
       - name: Store the distribution packages
         uses: actions/upload-artifact@v4
         with:
-          name: output-wheels-linux-latest
+          name: output-wheels-none-any
           path: ./dist/*.whl
 
-  build_windows_wheels_x64:
+  build_wheels_windows_x64:
     name: Build windows x64 wheels
     runs-on: windows-latest
 
@@ -28,10 +28,10 @@ jobs:
       - name: Store the distribution packages
         uses: actions/upload-artifact@v4
         with:
-          name: output-wheels-windows-latest-x64
+          name: output-wheels-windows-x64
           path: ./dist/*.whl
 
-  build_windows_wheels_x86:
+  build_wheels_windows_x86:
     name: Build windows x86 wheels
     runs-on: windows-latest
 
@@ -50,21 +50,7 @@ jobs:
       - name: Store the distribution packages
         uses: actions/upload-artifact@v4
         with:
-          name: output-wheels-windows-latest-x86
-          path: ./dist/*.whl
-
-  build_macos_wheels:
-    name: Build macos wheels
-    runs-on: macos-latest
-
-    steps:
-      - uses: actions/checkout@v4
-      - name: Build package
-        run: pipx run build --wheel
-      - name: Store the distribution packages
-        uses: actions/upload-artifact@v4
-        with:
-          name: output-wheels-macos-latest
+          name: output-wheels-windows-x86
           path: ./dist/*.whl
 
   build_sdist:
@@ -84,10 +70,9 @@ jobs:
     name: Publish Python distribution to PyPI
     if: startsWith(github.ref, 'refs/tags/')
     needs:
-      - build_linux_wheels
-      - build_windows_wheels_x64
-      - build_windows_wheels_x86
-      - build_macos_wheels
+      - build_wheels
+      - build_wheels_windows_x64
+      - build_wheels_windows_x86
       - build_sdist
     runs-on: ubuntu-latest
     environment:
