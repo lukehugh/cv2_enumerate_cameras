@@ -1,5 +1,6 @@
 from cv2_enumerate_cameras.camera_info import CameraInfo
 import os
+import glob
 import subprocess
 
 
@@ -46,21 +47,9 @@ def device_can_capture_video(device_name: str) -> bool:
 
     return False
 
-try:
-    from linuxpy.video.device import iter_video_capture_devices
-
-    def capture_files():
-        for device in iter_video_capture_devices():
-            yield device.PREFIX + str(device.index)
-except ImportError:
-    import glob
-
-    def capture_files():
-        yield from glob.glob('/dev/video*')
-
 
 def cameras_generator(apiPreference):
-    for path in capture_files():
+    for path in glob.glob('/dev/video*'):
         # find device name and index
         device_name = os.path.basename(path)
         if not device_name[5:].isdigit():
