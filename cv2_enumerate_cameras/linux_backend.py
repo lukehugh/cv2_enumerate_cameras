@@ -1,7 +1,8 @@
 from cv2_enumerate_cameras.camera_info import CameraInfo
 import os
 import glob
-import subprocess
+import ctypes
+import fcntl
 
 
 try:
@@ -12,7 +13,28 @@ except ModuleNotFoundError:
     CAP_GSTREAMER = 1800
     CAP_V4L2 = 200
 
+
 supported_backends = (CAP_GSTREAMER, CAP_V4L2)
+
+
+# struct v4l2_capability (videodev2.h)
+class v4l2_capability(ctypes.Structure):
+    _fields_ = [
+        ("driver", ctypes.c_char * 16),
+        ("card", ctypes.c_char * 32),
+        ("bus_info", ctypes.c_char * 32),
+        ("version", ctypes.c_uint),
+        ("capabilities", ctypes.c_uint),
+        ("device_caps", ctypes.c_uint),
+        ("reserved", ctypes.c_uint * 3),
+    ]
+
+
+# VIDIOC_QUERYCAP (videodev2.h)
+VIDIOC_QUERYCAP = 0x80685600
+
+# V4L2_CAP_VIDEO_CAPTURE (videodev2.h)
+V4L2_CAP_VIDEO_CAPTURE = 0x00000001
 
 
 def read_line(*args):
@@ -22,30 +44,17 @@ def read_line(*args):
         return line
     except IOError:
         return None
-    
-def device_can_capture_video(device_name: str) -> bool:
+
+
+def device_can_capture_video(path):
+    capability = v4l2_capability()
     try:
-        device_info = subprocess.check_output(['v4l2-ctl', f'--device=/dev/{device_name}', '--info'])
-    except subprocess.CalledProcessError:
-        return True  # If we can't check device info, assume it supports capture
-
-    lines = device_info.decode('utf-8').split('\n')
-    capabilities_index = next((index for index, line in enumerate(lines) if line.startswith('\tCapabilities')), None)
-    device_caps_index = next((index for index, line in enumerate(lines) if line.startswith('\tDevice Caps')), None)
-    if device_caps_index is not None:
-        search_index = device_caps_index
-    elif capabilities_index is not None:
-        search_index = capabilities_index # If device has no specific Device Caps, we can trust it's main capabilities
-    else:
-        return True  # Device info returns no capabilities listed, assume it supports capture
-
-    for line in lines[search_index + 1 :]:
-        if 'Video Capture' in line:
-            return True
-        elif not line.startswith('\t\t'):
-            return False  # Next header has been reached, no video capture support
-
-    return False
+        with open(path, 'rb', buffering=0) as fd:
+            fcntl.ioctl(fd, VIDIOC_QUERYCAP, capability)
+    except OSError:
+        # If we can't check device info, assume it supports capture
+        return True
+    return capability.device_caps & V4L2_CAP_VIDEO_CAPTURE
 
 
 def cameras_generator(apiPreference):
@@ -57,7 +66,7 @@ def cameras_generator(apiPreference):
         index = int(device_name[5:])
 
         # check if device supports video capture
-        if not device_can_capture_video(device_name):
+        if not device_can_capture_video(path):
             continue
 
         # read camera name
