@@ -22,7 +22,7 @@ class CameraInfo:
         return f'{self.index}: {self.name}'
 
     def __repr__(self):
-        return str(self)
+        return f'{self.__class__.__name__}(index={self.index}, name={self.name!r}, path={self.path!r}, vid={self.vid}, pid={self.pid}, backend={self.backend})'
 
 
 __all__ = ['CameraInfo']
