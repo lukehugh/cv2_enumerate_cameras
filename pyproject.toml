@@ -30,7 +30,7 @@ Homepage = "https://github.com/chinaheyu/cv2_enumerate_cameras"
 Issues = "https://github.com/chinaheyu/cv2_enumerate_cameras/issues"
 
 [project.scripts]
-cv2_enumerate_cameras = "cv2_enumerate_cameras.__main__:main"
+lscam = "cv2_enumerate_cameras.__main__:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
