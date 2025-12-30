@@ -39,7 +39,7 @@ V4L2_CAP_VIDEO_CAPTURE = 0x00000001
 
 def read_line(*args):
     try:
-        with open(os.path.join(*args)) as f:
+        with open(os.path.join(*args), encoding='utf-8', errors='replace') as f:
             line = f.readline().strip()
         return line
     except IOError:
