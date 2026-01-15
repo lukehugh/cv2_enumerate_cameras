@@ -34,10 +34,6 @@ def cameras_generator(apiPreference):
         if hasattr(AVFoundation, "AVCaptureDeviceTypeContinuityCamera"):
             device_types.append(AVFoundation.AVCaptureDeviceTypeContinuityCamera)
 
-        # Add Desk View Camera if available (macOS 13.0+)
-        if hasattr(AVFoundation, "AVCaptureDeviceTypeDeskViewCamera"):
-            device_types.append(AVFoundation.AVCaptureDeviceTypeDeskViewCamera)
-
         device_discovery_session = AVFoundation.AVCaptureDeviceDiscoverySession
         discovery_session = device_discovery_session.discoverySessionWithDeviceTypes_mediaType_position_(
             device_types,
