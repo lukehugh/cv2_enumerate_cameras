@@ -26,8 +26,8 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/chinaheyu/cv2_enumerate_cameras"
-Issues = "https://github.com/chinaheyu/cv2_enumerate_cameras/issues"
+Homepage = "https://github.com/lukehugh/cv2_enumerate_cameras"
+Issues = "https://github.com/lukehugh/cv2_enumerate_cameras/issues"
 
 [project.scripts]
 lscam = "cv2_enumerate_cameras.__main__:main"
