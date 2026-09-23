@@ -17,7 +17,7 @@ classifiers = [
 ]
 readme = "README.md"
 requires-python = ">=3.6"
-license = {file = "LICENSE"}
+license = {text = "MIT"}
 keywords = ["opencv", "cv2", "enumerate", "camera", "video capture"]
 dynamic = ["version"]
 
