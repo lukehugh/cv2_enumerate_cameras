@@ -1,6 +1,12 @@
 name: Python package
 
-on: push
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   build_wheels:
@@ -17,41 +23,23 @@ jobs:
           name: output-wheels-none-any
           path: ./dist/*.whl
 
-  build_wheels_windows_x64:
-    name: Build windows x64 wheels
+  build_wheels_windows:
+    name: Build Windows wheels
     runs-on: windows-latest
 
     steps:
       - uses: actions/checkout@v4
-      - name: Build package
-        run: pipx run build --wheel
+      - name: Build Windows wheels
+        uses: pypa/cibuildwheel@v4.2.1
+        with:
+          output-dir: dist
+          extras: uv
       - name: Store the distribution packages
         uses: actions/upload-artifact@v4
         with:
-          name: output-wheels-windows-x64
+          name: output-wheels-windows
           path: ./dist/*.whl
-
-  build_wheels_windows_x86:
-    name: Build windows x86 wheels
-    runs-on: windows-latest
-
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.8'
-          architecture: x86
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install --upgrade build
-      - name: Build package
-        run: python -m build --wheel
-      - name: Store the distribution packages
-        uses: actions/upload-artifact@v4
-        with:
-          name: output-wheels-windows-x86
-          path: ./dist/*.whl
+          if-no-files-found: error
 
   build_sdist:
     name: Build source distribution
@@ -68,11 +56,10 @@ jobs:
 
   publish-to-pypi:
     name: Publish Python distribution to PyPI
-    if: startsWith(github.ref, 'refs/tags/')
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
     needs:
       - build_wheels
-      - build_wheels_windows_x64
-      - build_wheels_windows_x86
+      - build_wheels_windows
       - build_sdist
     runs-on: ubuntu-latest
     environment:

@@ -16,7 +16,7 @@ classifiers = [
   "Typing :: Typed"
 ]
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 license = {text = "MIT"}
 keywords = ["opencv", "cv2", "enumerate", "camera", "video capture"]
 dynamic = ["version"]
@@ -42,3 +42,10 @@ namespaces = false
 
 [tool.setuptools.dynamic]
 version = {attr = "cv2_enumerate_cameras.__version__"}
+
+[tool.cibuildwheel]
+build = "cp3*-win*"
+build-frontend = "build[uv]"
+
+[tool.cibuildwheel.windows]
+archs = ["AMD64", "x86"]
