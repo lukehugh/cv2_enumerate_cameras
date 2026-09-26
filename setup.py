@@ -1,8 +1,18 @@
 from setuptools import Extension, setup
+from setuptools.command.bdist_wheel import bdist_wheel as _bdist_wheel
 import platform
 import os
+import sysconfig
 
 system = platform.system()
+free_threaded = bool(sysconfig.get_config_var("Py_GIL_DISABLED"))
+
+
+class bdist_wheel(_bdist_wheel):
+    def finalize_options(self):
+        if free_threaded:
+            self.py_limited_api = None
+        super().finalize_options()
 
 
 def get_version(rel_path):
@@ -21,12 +31,13 @@ if system == 'Windows':
         version=get_version('cv2_enumerate_cameras/__init__.py'),
         package_dir={"": "."},
         packages=["cv2_enumerate_cameras"],
+        cmdclass={"bdist_wheel": bdist_wheel},
         ext_modules=[
             Extension(
                 name="cv2_enumerate_cameras._windows_backend",
                 sources=["cv2_enumerate_cameras/_windows_backend.cpp"],
-                py_limited_api=True,
-                define_macros=[("Py_LIMITED_API", "0x03020000")]
+                py_limited_api=not free_threaded,
+                define_macros=[] if free_threaded else [("Py_LIMITED_API", "0x03020000")],
             )
         ]
     )

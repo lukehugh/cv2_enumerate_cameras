@@ -153,7 +153,11 @@ bool DSHOW_enumerate_cameras(std::vector<CameraInfo>& camera_info) {
 static PyObject* windows_backend_MSMF_enumerate_cameras(PyObject* self, PyObject* args)
 {
     std::vector<CameraInfo> camera_info;
-    if (!MSMF_enumerate_cameras(camera_info))
+    bool success;
+    Py_BEGIN_ALLOW_THREADS
+    success = MSMF_enumerate_cameras(camera_info);
+    Py_END_ALLOW_THREADS
+    if (!success)
         return Py_BuildValue("");
     PyObject* result = PyList_New(camera_info.size());
     for (int i = 0; i < camera_info.size(); ++i) {
@@ -166,7 +170,11 @@ static PyObject* windows_backend_MSMF_enumerate_cameras(PyObject* self, PyObject
 static PyObject* windows_backend_DSHOW_enumerate_cameras(PyObject* self, PyObject* args)
 {
     std::vector<CameraInfo> camera_info;
-    if (!DSHOW_enumerate_cameras(camera_info))
+    bool success;
+    Py_BEGIN_ALLOW_THREADS
+    success = DSHOW_enumerate_cameras(camera_info);
+    Py_END_ALLOW_THREADS
+    if (!success)
         return Py_BuildValue("");
     PyObject* result = PyList_New(camera_info.size());
     for (int i = 0; i < camera_info.size(); ++i) {
@@ -192,5 +200,10 @@ static struct PyModuleDef windows_backend_module = {
 
 PyMODINIT_FUNC PyInit__windows_backend(void)
 {
-    return PyModule_Create(&windows_backend_module);
+    PyObject* module = PyModule_Create(&windows_backend_module);
+#ifdef Py_GIL_DISABLED
+    if (module != nullptr)
+        PyUnstable_Module_SetGIL(module, Py_MOD_GIL_NOT_USED);
+#endif
+    return module;
 }

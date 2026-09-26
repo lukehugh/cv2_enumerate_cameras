@@ -31,6 +31,36 @@ jobs:
           name: output-wheels-windows-x64
           path: ./dist/*.whl
 
+  build_wheels_windows_free_threaded:
+    name: Build windows x64 free-threaded wheel
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14t'
+      - name: Install build tooling
+        run: python -m pip install --upgrade pip build
+      - name: Build package
+        run: python -m build --wheel
+      - name: Verify free-threaded wheel
+        shell: pwsh
+        run: |
+          $wheel = Get-ChildItem dist/*.whl | Select-Object -First 1
+          if ($wheel.Name -notmatch 'cp314-cp314t-win_amd64') {
+            throw "Unexpected free-threaded wheel tag: $($wheel.Name)"
+          }
+          python -m pip install --force-reinstall --no-deps $wheel.FullName
+          $env:PYTHON_GIL = '0'
+          Set-Location $env:RUNNER_TEMP
+          python -W error -c "import sys, sysconfig; import cv2_enumerate_cameras; import cv2_enumerate_cameras._windows_backend; assert sysconfig.get_config_var('Py_GIL_DISABLED') == 1; assert not sys._is_gil_enabled()"
+      - name: Store the distribution packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: output-wheels-windows-x64-free-threaded
+          path: ./dist/*.whl
+
   build_wheels_windows_x86:
     name: Build windows x86 wheels
     runs-on: windows-latest
@@ -72,6 +102,7 @@ jobs:
     needs:
       - build_wheels
       - build_wheels_windows_x64
+      - build_wheels_windows_free_threaded
       - build_wheels_windows_x86
       - build_sdist
     runs-on: ubuntu-latest
