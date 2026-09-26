@@ -1,59 +1,25 @@
+import sys
+import sysconfig
+
 from setuptools import Extension, setup
-import platform
-import os
-
-system = platform.system()
 
 
-def get_version(rel_path):
-    version_file = os.path.join(os.path.abspath(os.path.dirname(__file__)), rel_path)
-    with open(version_file, encoding='utf-8') as f:
-        for line in f.readlines():
-            if line.startswith('__version__'):
-                delim = '"' if '"' in line else "'"
-                return line.split(delim)[1]
+ext_modules = []
+options = {}
 
-
-if system == 'Windows':
-    setup(
-        name='cv2_enumerate_cameras',
-        description='Enumerate / List / Find / Detect / Search index for opencv VideoCapture.',
-        version=get_version('cv2_enumerate_cameras/__init__.py'),
-        package_dir={"": "."},
-        packages=["cv2_enumerate_cameras"],
-        ext_modules=[
-            Extension(
-                name="cv2_enumerate_cameras._windows_backend",
-                sources=["cv2_enumerate_cameras/_windows_backend.cpp"],
-                py_limited_api=True,
-                define_macros=[("Py_LIMITED_API", "0x03020000")]
-            )
-        ]
+if sys.platform == "win32":
+    # Keep the extension and wheel tags in sync. Free-threaded builds use
+    # their version-specific ABI instead of the GIL-enabled stable ABI.
+    limited_api = not sysconfig.get_config_var("Py_GIL_DISABLED")
+    ext_modules.append(
+        Extension(
+            name="cv2_enumerate_cameras._windows_backend",
+            sources=["cv2_enumerate_cameras/_windows_backend.cpp"],
+            py_limited_api=limited_api,
+            define_macros=[("Py_LIMITED_API", "0x03080000")] if limited_api else [],
+        )
     )
+    if limited_api:
+        options["bdist_wheel"] = {"py_limited_api": "cp38"}
 
-
-if system == 'Linux':
-    setup(
-        name='cv2_enumerate_cameras',
-        description='Enumerate / List / Find / Detect / Search index for opencv VideoCapture.',
-        version=get_version('cv2_enumerate_cameras/__init__.py'),
-        package_dir={"": "."},
-        packages=["cv2_enumerate_cameras"],
-        extras_require={
-            'linuxpy': ["linuxpy"]
-        },
-        ext_modules=[]
-    )
-
-if system == 'Darwin':
-    setup(
-        name='cv2_enumerate_cameras',
-        description='Enumerate / List / Find / Detect / Search index for opencv VideoCapture.',
-        version=get_version('cv2_enumerate_cameras/__init__.py'),
-        package_dir={"": "."},
-        packages=["cv2_enumerate_cameras"],
-        install_requires=[
-            "pyobjc-framework-AVFoundation",
-        ],
-        ext_modules=[]
-    )
+setup(ext_modules=ext_modules, options=options)
