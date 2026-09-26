@@ -1,4 +1,4 @@
-__version__ = '1.3.4'
+__version__ = '1.4.0'
 
 from cv2_enumerate_cameras.camera_info import CameraInfo
 import platform
